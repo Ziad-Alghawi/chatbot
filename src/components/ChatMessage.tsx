@@ -1,17 +1,20 @@
 import dayjs from 'dayjs';
+import LoadingSpinner from '../assets/loading-spinner.gif'
 
 import RobotProfileImage from '../assets/robot.png'
 //import UserProfileImage from '../assets/user.png'
 import ZiadProfileImage from '../assets/ziad.png'
 import './ChatMessage.css'
+import type { ChatMessage as ChatMessageType } from '../types/chat';
 
 type ChatMessageProps = {
-  message: string;
-  sender: string;
-  time: number;
+  message: ChatMessageType['message'];
+  sender: ChatMessageType['sender'];
+  time: ChatMessageType['time'];
+  isLoading?: ChatMessageType['isLoading'];
 };
 
-export function ChatMessage({message, sender, time} : ChatMessageProps) { //3rd
+export function ChatMessage({message, sender, time, isLoading} : ChatMessageProps) { //3rd
 
   /*
   if (sender === 'robot') {
@@ -38,7 +41,11 @@ export function ChatMessage({message, sender, time} : ChatMessageProps) { //3rd
           className = "chat-message-profile" />
       ) }
       <div className="chat-message-text">
-        {message}
+        {isLoading ? (
+          <img src={LoadingSpinner} className="loading-img" />
+        ) : (
+          message
+        )}
 
         {/* The "time && (" check is optional. I added it just to be safe. */}
         {time && (

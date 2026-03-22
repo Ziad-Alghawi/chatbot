@@ -1,14 +1,10 @@
 import { ChatMessage } from './ChatMessage';
 import useAutoScroll from '../hooks/useAutoScroll';
 import './ChatMessages.css'
+import type { ChatMessage as ChatMessageType } from '../types/chat';
 
 type ChatMessagesProps = {
-  chatMessages: {
-    id: string;
-    message: string;
-    sender: string;
-    time: number;
-  }[];
+  chatMessages: ChatMessageType[];
 };
 
 export function ChatMessages({chatMessages}: ChatMessagesProps) { //4th
@@ -25,6 +21,7 @@ export function ChatMessages({chatMessages}: ChatMessagesProps) { //4th
             message={chatMessage.message} 
             sender={chatMessage.sender}
             time={chatMessage.time}
+            isLoading={chatMessage.isLoading}
             key={chatMessage.id}
           />
         )

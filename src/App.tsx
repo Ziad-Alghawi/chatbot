@@ -2,7 +2,17 @@ import { useState, useEffect } from 'react'
 import { Chatbot } from 'supersimpledev';
 import { ChatInput } from './components/ChatInput';
 import { ChatMessages } from './components/ChatMessages';
+import type { ChatMessage } from './types/chat';
 import './App.css'
+
+function loadMessages(): ChatMessage[] {
+  try {
+    const saved = localStorage.getItem('messages');
+    return saved ? (JSON.parse(saved) as ChatMessage[]) : [];
+  } catch {
+    return [];
+  }
+}
 
 function App(){
  // we add more responses by using <useEffect>
@@ -25,10 +35,7 @@ function App(){
   // 4 const setChatMessages = array[1]; //second value gives us the function to update the data
 
   //// we used localStorage to save the chat 
-  const [chatMessages, setChatMessages] = useState(() => {
-  const saved = localStorage.getItem('messages');
-  return saved ? JSON.parse(saved) : [];
-});
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(loadMessages);
 //// we used localStorage to save the chat
   useEffect(() =>{
     localStorage.setItem('messages', JSON.stringify(chatMessages));

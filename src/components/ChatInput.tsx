@@ -1,19 +1,12 @@
 import { useState } from 'react'
 import dayjs from 'dayjs';
 import { Chatbot } from 'supersimpledev';
-import LoadingSpinner from '../assets/loading-spinner.gif'
 import './ChatInput.css';
-
-type ChatMessages = {
-  message: string | React.ReactNode;
-  sender: string;
-  id: string;
-}[];
-
+import type { ChatMessage } from '../types/chat';
 
 type ChatInputProps = {
- chatMessages: ChatMessages;
-  setChatMessages: (chatMessages: ChatMessages) => void;
+  chatMessages: ChatMessage[];
+  setChatMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
 };
 
 export function ChatInput({chatMessages, setChatMessages}: ChatInputProps) { //2nd
@@ -22,38 +15,34 @@ export function ChatInput({chatMessages, setChatMessages}: ChatInputProps) { //2
 // Tracks if chatbot is currently waiting for a response
   const [isLoading, setIsLoading] = useState(false);
 
-  function saveInputText(event: {
-    target: {
-      value: string;
-    };
-  }){
+  function saveInputText(event: React.ChangeEvent<HTMLInputElement>){
     setInputText(event.target.value);
 
   }
 // we added async to make wait for the response >EX 03k
   async function sendMessage() {
+    const trimmedInput = inputText.trim();
 // Stop if bot is busy OR input is empty
-    if (isLoading || inputText === '') {
+    if (isLoading || trimmedInput === '') {
       return;
     }
 // Lock sending while waiting for chatbot reply
     setIsLoading(true);
 
-    const newChatMessages = [
+    const newChatMessages: ChatMessage[] = [
       ...chatMessages,
       {
-        message: inputText,
+        message: trimmedInput,
         sender: 'user',
         id: crypto.randomUUID(),
         time: dayjs().valueOf()
       },
       {
-        //add loading message while the chatbot is thinking >> then we delete it down
-      //message: 'loading...'  ,
-        message: <img src ={LoadingSpinner}      className="loading-img"/>,
+        message: '',
         sender: 'robot',
         id: crypto.randomUUID(),
-        time: dayjs().valueOf()
+        time: dayjs().valueOf(),
+        isLoading: true
       }
     ];
 
@@ -61,19 +50,31 @@ export function ChatInput({chatMessages, setChatMessages}: ChatInputProps) { //2
 
     setInputText('');
 
-    const response = await Chatbot.getResponseAsync(inputText);
-    setChatMessages([
-      ...newChatMessages.slice(0, newChatMessages.length -1), // to remove the loading message
-      {
-        message: response,
-        sender: 'robot',
-        id: crypto.randomUUID(),
-        time: dayjs().valueOf()
-      }
-    ]);
-
-// Unlock sending after response arrives
-    setIsLoading(false);
+    try {
+      const response = await Chatbot.getResponseAsync(trimmedInput);
+      setChatMessages([
+        ...newChatMessages.slice(0, newChatMessages.length -1), // to remove the loading message
+        {
+          message: response,
+          sender: 'robot',
+          id: crypto.randomUUID(),
+          time: dayjs().valueOf()
+        }
+      ]);
+    } catch {
+      setChatMessages([
+        ...newChatMessages.slice(0, newChatMessages.length -1),
+        {
+          message: 'Sorry, something went wrong. Please try again.',
+          sender: 'robot',
+          id: crypto.randomUUID(),
+          time: dayjs().valueOf()
+        }
+      ]);
+    } finally {
+      // Unlock sending after response arrives
+      setIsLoading(false);
+    }
     
   }
   function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
@@ -95,7 +96,7 @@ export function ChatInput({chatMessages, setChatMessages}: ChatInputProps) { //2
   return (
     <div className="chat-input-container">
       <input 
-        placeholder="Sene a message to Chatbot" 
+        placeholder="Send a message to Chatbot" 
         size={30} 
         onChange={saveInputText}
         value={inputText}//controlled input >> to make the input value change on html
